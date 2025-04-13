@@ -21,7 +21,7 @@ mongoose.connect(process.env.MONGODB_URI)
   .catch(err => console.log("❌ MongoDB connection error: ", err));
 
 // TimeEntry model
-const TimeEntry = require('./models/TimeEntry');
+const TimeEntry = require('./backend/models/TimeEntry');
 
 // Utility: Calculate total time
 const calculateTotalTime = (startTime, endTime) => {
