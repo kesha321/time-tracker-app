@@ -1,0 +1,111 @@
+/* Global Body Styles */
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f9;
+  display: flex;
+  flex-direction: column;  /* Stack cards vertically */
+  align-items: center;
+  padding: 20px;
+  margin: 0;
+}
+
+/* Card for the Clock In / Clock Out Form */
+.card {
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  width: 320px;
+  margin-bottom: 20px;
+}
+
+/* Card for the Time Entries History */
+.card-entries {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  width: 90%;
+  max-width: 800px;
+}
+
+/* Headings */
+h2, h3 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* Clock display */
+#clock {
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Form Labels */
+label {
+  display: block;
+  margin: 10px 0 5px;
+}
+
+/* Inputs, Selects, and Buttons */
+input, select, button {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+/* Button Specific Styles */
+button {
+  font-weight: bold;
+  cursor: pointer;
+}
+.in {
+  background-color: #4CAF50;
+  color: white;
+}
+.out {
+  background-color: #e53935;
+  color: white;
+}
+
+/* Toast Notification Styles */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 9999;
+}
+.toast.show {
+  opacity: 1;
+}
+.toast.hidden {
+  display: none;
+}
+
+/* Table Styles for Time Entries */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin-top: 10px;
+}
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
