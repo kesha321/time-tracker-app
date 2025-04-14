@@ -5,6 +5,8 @@ const roleSelect = document.getElementById("role");
 const clockInBtn = document.getElementById("clockInBtn");
 const clockOutBtn = document.getElementById("clockOutBtn");
 
+const API_BASE = "https://time-tracker-app-qtrg.onrender.com"; // ✅ LIVE backend
+
 // 🕒 Live Clock
 function updateClock() {
   const now = new Date();
@@ -64,7 +66,7 @@ clockOutBtn.addEventListener("click", async () => {
   };
 
   try {
-    const response = await fetch("/time-entry", {
+    const response = await fetch(`${API_BASE}/time-entry`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -102,7 +104,7 @@ function showToast(message) {
 // ✅ Load entries from backend
 async function loadTimeEntries() {
   try {
-    const response = await fetch("/time-entries");
+    const response = await fetch(`${API_BASE}/time-entries`);
     const entries = await response.json();
     displayEntries(entries);
   } catch (error) {
@@ -164,7 +166,7 @@ function displayEntries(entries) {
 async function deleteEntry(id) {
   if (!confirm("Are you sure you want to delete this entry?")) return;
   try {
-    const response = await fetch(`/time-entry/${id}`, {
+    const response = await fetch(`${API_BASE}/time-entry/${id}`, {
       method: "DELETE"
     });
     const result = await response.json();
