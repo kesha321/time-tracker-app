@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Employee Clock In/Out</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+  <h2 class="mb-4 text-center">Employee Clock In/Out</h2>
+  
+  <form id="clock-form" class="row g-3 justify-content-center">
+    <!-- Full Name -->
+    <div class="col-md-4">
+      <input type="text" id="fullname" class="form-control" placeholder="Full Name" required>
+    </div>
+
+    <!-- Role Dropdown -->
+    <div class="col-md-4">
+      <select id="role" class="form-select" required>
+        <option value="" disabled selected>Select Role</option>
+        <option value="Scheduling Coordinator">Scheduling Coordinator</option>
+        <option value="Recruitment Specialist">Recruitment Specialist</option>
+        <option value="After Hours & On-Call Assistant">After Hours & On-Call Assistant</option>
+        <option value="Intake Coordinator">Intake Coordinator</option>
+        <option value="Virtual Receptionist">Virtual Receptionist</option>
+        <option value="Data Migration">Data Migration</option>
+        <option value="Human Resources department">Human Resources department</option>
+        <option value="Admin">Admin</option>
+      </select>
+    </div>
+
+    <!-- Timezone Dropdown -->
+    <div class="col-md-4">
+      <select id="timezone" class="form-select" required>
+        <option value="Asia/Manila">Philippines (GMT+8)</option>
+
+        <!-- Eastern Time -->
+        <option value="America/New_York">ET - Eastern Time</option>
+        <option value="America/New_York">EST - Eastern Standard Time</option>
+        <option value="America/New_York">EDT - Eastern Daylight Time</option>
+
+        <!-- Central Time -->
+        <option value="America/Chicago">CT - Central Time</option>
+        <option value="America/Chicago">CST - Central Standard Time</option>
+        <option value="America/Chicago">CDT - Central Daylight Time</option>
+
+        <!-- Mountain Time -->
+        <option value="America/Denver">MT - Mountain Time</option>
+        <option value="America/Denver">MST - Mountain Standard Time</option>
+        <option value="America/Denver">MDT - Mountain Daylight Time</option>
+
+        <!-- Pacific Time -->
+        <option value="America/Los_Angeles">PT - Pacific Time</option>
+        <option value="America/Los_Angeles">PST - Pacific Standard Time</option>
+        <option value="America/Los_Angeles">PDT - Pacific Daylight Time</option>
+
+        <!-- Alaska Time -->
+        <option value="America/Anchorage">AKT - Alaska Time</option>
+        <option value="America/Anchorage">AKST - Alaska Standard Time</option>
+        <option value="America/Anchorage">AKDT - Alaska Daylight Time</option>
+
+        <!-- Hawaii Time -->
+        <option value="Pacific/Honolulu">HT - Hawaii Time</option>
+        <option value="Pacific/Honolulu">HST - Hawaii Standard Time</option>
+        <option value="Pacific/Honolulu">HAST - Hawaii-Aleutian Standard Time</option>
+      </select>
+
+      <!-- Auto-detect Timezone Checkbox -->
+      <div class="form-check mt-2">
+        <input class="form-check-input" type="checkbox" id="auto-detect" onchange="toggleTimezoneSelect()">
+        <label class="form-check-label" for="auto-detect">
+          Auto-detect my timezone
+        </label>
+      </div>
+
+      <!-- Show detected timezone info -->
+      <div id="detected-timezone" class="text-muted small mt-1" style="display: none;"></div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="col-md-2 d-grid">
+      <button type="button" class="btn btn-success" onclick="clockIn()">Clock In</button>
+    </div>
+    <div class="col-md-2 d-grid">
+      <button type="button" class="btn btn-primary" onclick="clockOut()">Clock Out</button>
+    </div>
+  </form>
+
+  <div id="status" class="text-center mt-4 fw-bold fs-4"></div>
+</div>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Toggle manual timezone selection
+function toggleTimezoneSelect() {
+  const autoDetect = document.getElementById('auto-detect').checked;
+  const timezoneSelect = document.getElementById('timezone');
+  const detectedLabel = document.getElementById('detected-timezone');
+
+  if (autoDetect) {
+    timezoneSelect.disabled = true;
+    const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    detectedLabel.style.display = 'block';
+    detectedLabel.innerText = 'Auto-detected timezone: ' + detected;
+  } else {
+    timezoneSelect.disabled = false;
+    detectedLabel.style.display = 'none';
+  }
+}
+
+// Get timezone to send
+function getTimezone() {
+  const autoDetect = document.getElementById('auto-detect').checked;
+  if (autoDetect) {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } else {
+    return document.getElementById('timezone').value;
+  }
+}
+
+// Clock In
+function clockIn() {
+  fetch('/clock-in', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: new URLSearchParams({
+      fullname: document.getElementById('fullname').value,
+      role: document.getElementById('role').value,
+      timezone: getTimezone()
+    })
+  })
+  .then(res => res.json())
+  .then(data => document.getElementById('status').innerText = data.message)
+  .catch(err => console.error('Error:', err));
+}
+
+// Clock Out
+function clockOut() {
+  fetch('/clock-out', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: new URLSearchParams({
+      fullname: document.getElementById('fullname').value
+    })
+  })
+  .then(res => res.json())
+  .then(data => document.getElementById('status').innerText = data.message)
+  .catch(err => console.error('Error:', err));
+}
+</script>
+
+</body>
+</html>
