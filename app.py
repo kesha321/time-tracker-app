@@ -153,25 +153,19 @@ def delete_entry(entry_id):
 
     return redirect(url_for('dashboard'))
 
-@app.route('/delete-range', methods=['POST'])
-def delete_range():
+@app.route('/delete-selected', methods=['POST'])
+def delete_selected():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
 
-    start_str = request.form.get('start_date')
-    end_str = request.form.get('end_date')
+    ids = request.form.getlist('selected_ids')
+    if ids:
+        for entry_id in ids:
+            entry = TimeEntry.query.get(entry_id)
+            if entry:
+                db.session.delete(entry)
+        db.session.commit()
 
-    if not start_str or not end_str:
-        return redirect(url_for('dashboard'))
-
-    start = datetime.strptime(start_str, '%Y-%m-%d')
-    end = datetime.strptime(end_str, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
-
-    entries = TimeEntry.query.filter(TimeEntry.clock_in >= start, TimeEntry.clock_in <= end).all()
-
-    for entry in entries:
-        db.session.delete(entry)
-    db.session.commit()
     return redirect(url_for('dashboard'))
 
 # Initialize database and create default admin
