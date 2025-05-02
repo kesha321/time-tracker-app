@@ -38,10 +38,8 @@ def clock_in():
     if not fullname or not role or not timezone:
         return jsonify({"status": "error", "message": "All fields required."})
 
-    # Format name
     fullname = ' '.join(word.capitalize() for word in fullname.strip().split())
 
-    # Prevent duplicate active clock-ins
     existing = TimeEntry.query.filter(
         func.lower(TimeEntry.fullname) == fullname.lower(),
         TimeEntry.clock_out == None
@@ -109,6 +107,8 @@ def dashboard():
     role = request.args.get('role', '')
     start_date = request.args.get('start_date', '')
     end_date = request.args.get('end_date', '')
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
 
     query = TimeEntry.query
 
@@ -121,21 +121,25 @@ def dashboard():
     if end_date:
         query = query.filter(TimeEntry.clock_in <= end_date)
 
-    entries = query.order_by(TimeEntry.clock_in.desc()).all()
+    pagination = query.order_by(TimeEntry.clock_in.desc()).paginate(page=page, per_page=per_page)
+    entries = pagination.items
 
     total_hours_per_employee = {}
-    for entry in entries:
+    for entry in query:
         if entry.clock_in and entry.clock_out:
             duration = (entry.clock_out - entry.clock_in).total_seconds() / 3600
         else:
             duration = 0
+        total_hours_per_employee[entry.fullname] = total_hours_per_employee.get(entry.fullname, 0) + duration
 
-        if entry.fullname in total_hours_per_employee:
-            total_hours_per_employee[entry.fullname] += duration
-        else:
-            total_hours_per_employee[entry.fullname] = duration
-
-    return render_template('dashboard.html', entries=entries, total_hours_per_employee=total_hours_per_employee)
+    return render_template('dashboard.html',
+                           entries=entries,
+                           total_hours_per_employee=total_hours_per_employee,
+                           pagination=pagination,
+                           fullname=fullname,
+                           role=role,
+                           start_date=start_date,
+                           end_date=end_date)
 
 @app.route('/delete/<int:entry_id>', methods=['POST'])
 def delete_entry(entry_id):
