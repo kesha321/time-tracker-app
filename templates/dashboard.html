@@ -34,59 +34,44 @@
     </div>
   </form>
 
-  <!-- 🔴 Delete Range Form -->
-  <form method="POST" action="{{ url_for('delete_range') }}" class="row g-3 mb-4">
-    <div class="col-md-4">
-      <input type="date" name="start_date" class="form-control" required>
+  <!-- Bulk Delete Form -->
+  <form method="POST" action="{{ url_for('delete_selected') }}">
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped text-center align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th><input type="checkbox" id="select-all"></th>
+            <th>Full Name</th>
+            <th>Role</th>
+            <th>Clock In</th>
+            <th>Clock Out</th>
+            <th>Timezone</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in entries %}
+          <tr>
+            <td><input type="checkbox" name="entry_ids" value="{{ entry.id }}"></td>
+            <td>{{ entry.fullname }}</td>
+            <td>{{ entry.role }}</td>
+            <td>{{ entry.clock_in.strftime('%Y-%m-%d %I:%M %p') }}</td>
+            <td>
+              {% if entry.clock_out %}
+                {{ entry.clock_out.strftime('%Y-%m-%d %I:%M %p') }}
+              {% else %}
+                <span class="badge bg-warning text-dark">Still Clocked In</span>
+              {% endif %}
+            </td>
+            <td>{{ entry.timezone }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-    <div class="col-md-4">
-      <input type="date" name="end_date" class="form-control" required>
-    </div>
-    <div class="col-md-4 d-grid">
-      <button type="submit" class="btn btn-danger"
-        onclick="return confirm('Are you sure you want to delete all entries in this date range?');">
-        Delete Range
-      </button>
+    <div class="mb-4">
+      <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete the selected entries?')">Delete Selected</button>
     </div>
   </form>
-
-  <!-- Timesheet Table -->
-  <div class="table-responsive">
-    <table class="table table-bordered table-striped text-center align-middle">
-      <thead class="table-dark">
-        <tr>
-          <th>Full Name</th>
-          <th>Role</th>
-          <th>Clock In</th>
-          <th>Clock Out</th>
-          <th>Timezone</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for entry in entries %}
-        <tr>
-          <td>{{ entry.fullname }}</td>
-          <td>{{ entry.role }}</td>
-          <td>{{ entry.clock_in.strftime('%Y-%m-%d %I:%M %p') }}</td>
-          <td>
-            {% if entry.clock_out %}
-              {{ entry.clock_out.strftime('%Y-%m-%d %I:%M %p') }}
-            {% else %}
-              <span class="badge bg-warning text-dark">Still Clocked In</span>
-            {% endif %}
-          </td>
-          <td>{{ entry.timezone }}</td>
-          <td>
-            <form action="{{ url_for('delete_entry', entry_id=entry.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this entry?');">
-              <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
 
   <!-- Total Hours Table -->
   <div class="mt-5">
@@ -141,6 +126,12 @@
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.getElementById('select-all').addEventListener('change', function(e) {
+    const checkboxes = document.querySelectorAll('input[name="entry_ids"]');
+    checkboxes.forEach(cb => cb.checked = e.target.checked);
+  });
+</script>
 
 </body>
 </html>
