@@ -34,6 +34,22 @@
     </div>
   </form>
 
+  <!-- 🔴 Delete Range Form -->
+  <form method="POST" action="{{ url_for('delete_range') }}" class="row g-3 mb-4">
+    <div class="col-md-4">
+      <input type="date" name="start_date" class="form-control" required>
+    </div>
+    <div class="col-md-4">
+      <input type="date" name="end_date" class="form-control" required>
+    </div>
+    <div class="col-md-4 d-grid">
+      <button type="submit" class="btn btn-danger"
+        onclick="return confirm('Are you sure you want to delete all entries in this date range?');">
+        Delete Range
+      </button>
+    </div>
+  </form>
+
   <!-- Timesheet Table -->
   <div class="table-responsive">
     <table class="table table-bordered table-striped text-center align-middle">
