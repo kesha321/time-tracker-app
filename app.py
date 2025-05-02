@@ -38,8 +38,17 @@ def clock_in():
     if not fullname or not role or not timezone:
         return jsonify({"status": "error", "message": "All fields required."})
 
-    # Clean and format fullname: remove extra spaces and capitalize each word
+    # Format name
     fullname = ' '.join(word.capitalize() for word in fullname.strip().split())
+
+    # Prevent duplicate active clock-ins
+    existing = TimeEntry.query.filter(
+        func.lower(TimeEntry.fullname) == fullname.lower(),
+        TimeEntry.clock_out == None
+    ).first()
+
+    if existing:
+        return jsonify({"status": "error", "message": "Already clocked in. Please clock out first."})
 
     entry = TimeEntry(
         fullname=fullname,
@@ -55,8 +64,6 @@ def clock_in():
 @app.route('/clock-out', methods=['POST'])
 def clock_out():
     fullname = request.form.get('fullname')
-
-    # Trim and lowercase fullname for case-insensitive matching
     fullname = fullname.strip()
 
     entry = TimeEntry.query.filter(
@@ -116,12 +123,10 @@ def dashboard():
 
     entries = query.order_by(TimeEntry.clock_in.desc()).all()
 
-    # Calculate total hours worked per employee
     total_hours_per_employee = {}
-
     for entry in entries:
         if entry.clock_in and entry.clock_out:
-            duration = (entry.clock_out - entry.clock_in).total_seconds() / 3600  # in hours
+            duration = (entry.clock_out - entry.clock_in).total_seconds() / 3600
         else:
             duration = 0
 
@@ -144,15 +149,13 @@ def delete_entry(entry_id):
 
     return redirect(url_for('dashboard'))
 
-# Initialize database and create default admin user (run only once)
+# Initialize database and create default admin
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-
-        # Create default admin if it doesn't exist
         if not Admin.query.filter_by(username='admin').first():
-            admin = Admin(username='admin', password=generate_password_hash('admin123'))
+            hashed_pw = generate_password_hash('admin123')
+            admin = Admin(username='admin', password=hashed_pw)
             db.session.add(admin)
             db.session.commit()
-
     app.run(debug=True)
