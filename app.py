@@ -27,7 +27,10 @@ class Admin(db.Model):
 # Routes
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Get unique full names from past entries
+    names = db.session.query(TimeEntry.fullname).distinct().all()
+    unique_names = sorted(set(name[0] for name in names if name[0]))
+    return render_template('index.html', unique_names=unique_names)
 
 @app.route('/clock-in', methods=['POST'])
 def clock_in():
