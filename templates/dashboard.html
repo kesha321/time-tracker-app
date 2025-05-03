@@ -12,7 +12,6 @@
 <div class="container mt-5">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Timesheet Dashboard</h2>
-    <a href="#summary" class="btn btn-outline-dark btn-sm">View Summary ↓</a>
     <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
   </div>
 
@@ -74,25 +73,32 @@
     </div>
   </form>
 
-  <!-- Total Hours Table -->
-  <div id="summary" class="mt-5">
-    <h4>Total Hours Worked per Employee</h4>  
-    <table class="table table-bordered table-striped text-center align-middle">
-      <thead class="table-dark">
-        <tr>
-          <th>Employee Name</th>
-          <th>Total Hours</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for name, hours in total_hours_per_employee.items() %}
-        <tr>
-          <td>{{ name }}</td>
-          <td>{{ '%.2f'|format(hours) }} hours</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <!-- Toggle Summary Button -->
+  <div class="text-end mb-3">
+    <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#summaryCollapse" id="summaryToggle">View Summary</button>
+  </div>
+
+  <!-- Total Hours Table Collapsible -->
+  <div class="collapse" id="summaryCollapse">
+    <div class="mt-4">
+      <h4>Total Hours Worked per Employee</h4>
+      <table class="table table-bordered table-striped text-center align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>Employee Name</th>
+            <th>Total Hours</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for name, hours in total_hours_per_employee.items() %}
+          <tr>
+            <td>{{ name }}</td>
+            <td>{{ '%.2f'|format(hours) }} hours</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Pagination -->
@@ -131,6 +137,16 @@
   document.getElementById('select-all').addEventListener('change', function(e) {
     const checkboxes = document.querySelectorAll('input[name="entry_ids"]');
     checkboxes.forEach(cb => cb.checked = e.target.checked);
+  });
+
+  // Auto collapse summary on page load (if filters or pagination applied)
+  window.addEventListener('DOMContentLoaded', () => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('page') || url.searchParams.has('fullname') || url.searchParams.has('role') || url.searchParams.has('start_date') || url.searchParams.has('end_date')) {
+      const collapseEl = document.getElementById('summaryCollapse');
+      const bsCollapse = new bootstrap.Collapse(collapseEl, { toggle: false });
+      bsCollapse.hide();
+    }
   });
 </script>
 
