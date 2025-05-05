@@ -3,9 +3,13 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 from datetime import datetime
 import pytz
+import os
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
+
+# Ensure database path exists
+os.makedirs('/mnt/data', exist_ok=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/data/database.db'
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 db = SQLAlchemy(app)
@@ -27,7 +31,6 @@ class Admin(db.Model):
 # Routes
 @app.route('/')
 def index():
-    # Get unique full names from past entries
     names = db.session.query(TimeEntry.fullname).distinct().all()
     unique_names = sorted(set(name[0] for name in names if name[0]))
     return render_template('index.html', unique_names=unique_names)
@@ -64,8 +67,7 @@ def clock_in():
 
 @app.route('/clock-out', methods=['POST'])
 def clock_out():
-    fullname = request.form.get('fullname')
-    fullname = fullname.strip()
+    fullname = request.form.get('fullname', '').strip()
 
     entry = TimeEntry.query.filter(
         func.lower(TimeEntry.fullname) == fullname.lower(),
@@ -85,14 +87,12 @@ def admin_login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
         admin = Admin.query.filter_by(username=username).first()
 
         if admin and check_password_hash(admin.password, password):
             session['admin_logged_in'] = True
             return redirect(url_for('dashboard'))
-        else:
-            return "Invalid credentials. Please try again."
+        return "Invalid credentials. Please try again."
 
     return render_template('admin_login.html')
 
@@ -129,10 +129,7 @@ def dashboard():
 
     total_hours_per_employee = {}
     for entry in query:
-        if entry.clock_in and entry.clock_out:
-            duration = (entry.clock_out - entry.clock_in).total_seconds() / 3600
-        else:
-            duration = 0
+        duration = (entry.clock_out - entry.clock_in).total_seconds() / 3600 if entry.clock_out else 0
         total_hours_per_employee[entry.fullname] = total_hours_per_employee.get(entry.fullname, 0) + duration
 
     return render_template('dashboard.html',
@@ -153,7 +150,6 @@ def delete_entry(entry_id):
     if entry:
         db.session.delete(entry)
         db.session.commit()
-
     return redirect(url_for('dashboard'))
 
 @app.route('/delete-selected', methods=['POST'])
@@ -168,16 +164,18 @@ def delete_selected():
             if entry:
                 db.session.delete(entry)
         db.session.commit()
-
     return redirect(url_for('dashboard'))
 
 # Initialize database and create default admin
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        if not Admin.query.filter_by(username='admin').first():
-            hashed_pw = generate_password_hash('admin123')
-            admin = Admin(username='admin', password=hashed_pw)
-            db.session.add(admin)
-            db.session.commit()
+        try:
+            if not Admin.query.filter_by(username='admin').first():
+                hashed_pw = generate_password_hash('admin123')
+                admin = Admin(username='admin', password=hashed_pw)
+                db.session.add(admin)
+                db.session.commit()
+        except Exception as e:
+            print("Failed to initialize admin:", e)
     app.run(debug=True)
