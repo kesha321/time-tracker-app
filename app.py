@@ -170,12 +170,4 @@ def delete_selected():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        try:
-            if not Admin.query.filter_by(username='admin').first():
-                hashed_pw = generate_password_hash('admin123')
-                admin = Admin(username='admin', password=hashed_pw)
-                db.session.add(admin)
-                db.session.commit()
-        except Exception as e:
-            print("Failed to initialize admin:", e)
     app.run(debug=True)
