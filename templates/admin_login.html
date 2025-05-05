@@ -1,14 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Admin Login</title>
+    <style>
+        body {
+            background-color: #f4f6f8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            padding-top: 60px; /* Slightly raised */
+            margin: 0;
+        }
+
+        .login-container {
+            background-color: white;
+            padding: 40px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+        }
+
+        .login-container h2 {
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        .login-container input[type="text"],
+        .login-container input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-right: 50px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 10px; /* Adjusted from 50% + transform */
+            cursor: pointer;
+            font-size: 13px;
+            color: #007bff;
+            user-select: none;
+            line-height: 1;
+        }
+
+        .toggle-password:hover {
+            text-decoration: underline;
+        }
+
+        .login-container input[type="submit"] {
+            background-color: #2e86de;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .login-container input[type="submit"]:hover {
+            background-color: #1c6fc1;
+        }
+    </style>
 </head>
 <body>
-    <h2>Admin Login</h2>
-    <form method="post">
+    <form class="login-container" method="POST">
+        <h2>Admin Login</h2>
         <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <button type="submit">Login</button>
+
+        <div class="password-wrapper">
+            <input type="password" name="password" placeholder="Password" id="password" required>
+            <span class="toggle-password" onclick="togglePassword()">Show</span>
+        </div>
+
+        <input type="submit" value="Login">
     </form>
+
+    <script>
+        function togglePassword() {
+            const pw = document.getElementById("password");
+            const toggle = document.querySelector(".toggle-password");
+            if (pw.type === "password") {
+                pw.type = "text";
+                toggle.textContent = "Hide";
+            } else {
+                pw.type = "password";
+                toggle.textContent = "Show";
+            }
+        }
+    </script>
 </body>
 </html>
