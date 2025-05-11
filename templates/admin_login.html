@@ -80,15 +80,20 @@
 <body>
     <form class="login-container" method="POST">
         <h2>Admin Login</h2>
+      
+        {% if error %}
+          <div class="alert alert-danger" style="margin-bottom: 20px;">{{ error }}</div>
+        {% endif %}
+      
         <input type="text" name="username" placeholder="Username" required>
-
+      
         <div class="password-wrapper">
-            <input type="password" name="password" placeholder="Password" id="password" required>
-            <span class="toggle-password" onclick="togglePassword()">Show</span>
+          <input type="password" name="password" placeholder="Password" id="password" required>
+          <span class="toggle-password" onclick="togglePassword()">Show</span>
         </div>
-
+      
         <input type="submit" value="Login">
-    </form>
+      </form>      
 
     <script>
         function togglePassword() {

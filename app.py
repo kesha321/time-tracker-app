@@ -84,6 +84,7 @@ def clock_out():
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin_login():
+    error = None
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -92,9 +93,10 @@ def admin_login():
         if admin and check_password_hash(admin.password, password):
             session['admin_logged_in'] = True
             return redirect(url_for('dashboard'))
-        return "Invalid credentials. Please try again."
+        else:
+            error = "Invalid username or password."
 
-    return render_template('admin_login.html')
+    return render_template('admin_login.html', error=error)
 
 @app.route('/logout')
 def logout():
