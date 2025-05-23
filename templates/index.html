@@ -97,9 +97,15 @@ function getTimezone() {
     : document.getElementById('timezone').value;
 }
 
-function showStatus(message, type = 'success') {
+function showStatus(message, type = 'success', duration = 3500) {
   const statusDiv = document.getElementById('status');
   statusDiv.innerHTML = `<div class="alert alert-${type}" role="alert">${message}</div>`;
+  // Auto-hide the alert after 'duration' ms (default: 3.5 seconds)
+  if (duration > 0) {
+    setTimeout(() => {
+      statusDiv.innerHTML = '';
+    }, duration);
+  }
 }
 
 function formatName(name) {
