@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash
 from flask import Flask
 import os
 
-# Initialize Flask app
+# === Initialize Flask app ===
 app = Flask(__name__)
 
 # Ensure mount path exists (safe for local and Render)
@@ -15,7 +15,7 @@ app.config['SECRET_KEY'] = 'your_secret_key_here'
 
 db = SQLAlchemy(app)
 
-# Database Models
+# === Database Models ===
 class TimeEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fullname = db.Column(db.String(100), nullable=False)
@@ -29,23 +29,24 @@ class Admin(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
 
-# Create tables and default admin
+# === Create tables and update/create admin user ===
 with app.app_context():
     db.create_all()
-    admin = Admin.query.filter_by(username='admin').first()
-    if admin:
-        # --- Update username and/or password here ---
-        admin.username = 'absadmin'  # Change to your new username
-        admin.password = generate_password_hash('admin12345')  # Change password if you want
-        db.session.commit()
-        print("✅ Admin username and password updated.")
-    else:
-        print("ℹ️ Admin not found, creating new admin...")
-        admin = Admin(
-            username='absadmin',
-            password=generate_password_hash('admin12345')
-        )
-        db.session.add(admin)
-        db.session.commit()
-        print("✅ New admin created.")
+
+    # REMOVE ALL ADMIN USERS
+    deleted = Admin.query.delete()
+    db.session.commit()
+    if deleted:
+        print(f"🗑️ Deleted {deleted} old admin user(s).")
+
+    # Add the only admin you want
+    NEW_USERNAME = 'absadmin'
+    NEW_PASSWORD = 'admin12345'
+    admin = Admin(
+        username=NEW_USERNAME,
+        password=generate_password_hash(NEW_PASSWORD)
+    )
+    db.session.add(admin)
+    db.session.commit()
+    print(f"✅ Created new admin: {NEW_USERNAME}")
 
