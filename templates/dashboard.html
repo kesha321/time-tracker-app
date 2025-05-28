@@ -17,28 +17,30 @@
     <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
   </div>
 
-  <!-- Unlock Edit Mode -->
+  <!-- Edit Mode Controls -->
   <div class="text-end mb-3">
     {% if not can_edit %}
       <button class="btn btn-warning btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#editModeModal">
         Unlock Edit Mode
       </button>
     {% else %}
-      <span class="badge bg-success">Edit Mode Enabled</span>
+      <span class="badge bg-success me-2">Edit Mode Enabled</span>
+      <form method="post" action="{{ url_for('exit_edit_mode') }}" class="d-inline">
+        <button type="submit" class="btn btn-outline-danger btn-sm"
+          onclick="return confirm('Are you sure you want to exit Edit Mode?')">Exit Edit Mode</button>
+      </form>
     {% endif %}
   </div>
 
-  <!-- Edit Mode Modal -->
+  <!-- Master Admin Modal -->
   <div class="modal fade" id="editModeModal" tabindex="-1" aria-labelledby="editModeModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="editModeModalLabel">Enter Super Admin Key</h5>
+          <h5 class="modal-title" id="editModeModalLabel">Enter Master Admin Key</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-
-          <!-- Flash alerts (super admin key) -->
           {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
               {% for category, message in messages %}
@@ -50,9 +52,9 @@
             {% endif %}
           {% endwith %}
 
-          <form method="post" action="{{ url_for('dashboard') }}">
+          <form method="post" action="{{ url_for('dashboard') }}" autocomplete="off">
             <div class="input-group mb-3">
-              <input type="password" class="form-control" name="super_admin_key" id="superAdminKeyInput" placeholder="Super Admin Key" required>
+              <input type="password" class="form-control" name="master_admin_key" id="masterAdminKeyInput" placeholder="Master Admin Key" required>
               <button class="btn btn-outline-secondary" type="button" id="togglePassword" tabindex="-1">
                 <span id="toggleIcon" class="bi bi-eye"></span>
               </button>
@@ -65,7 +67,7 @@
       </div>
     </div>
   </div>
-  <!-- End Edit Mode Modal -->
+  <!-- End Master Admin Modal -->
 
   <!-- Filter Form -->
   <form method="get" action="{{ url_for('dashboard') }}" class="row g-3 mb-4">
@@ -86,7 +88,7 @@
     </div>
   </form>
 
-  <!-- Bulk Delete Form -->
+  <!-- Bulk Delete Form & Timesheet Table -->
   <form method="POST" action="{{ url_for('delete_selected') }}">
     <div class="table-responsive">
       <table class="table table-bordered table-striped text-center align-middle">
@@ -209,9 +211,9 @@
     });
   }
 
-  // Show/Hide password for super admin key
+  // Show/Hide password for master admin key
   document.getElementById('togglePassword').addEventListener('click', function () {
-    const keyInput = document.getElementById('superAdminKeyInput');
+    const keyInput = document.getElementById('masterAdminKeyInput');
     const toggleIcon = document.getElementById('toggleIcon');
     if (keyInput.type === "password") {
       keyInput.type = "text";
@@ -247,7 +249,7 @@
       var editModeModal = new bootstrap.Modal(document.getElementById('editModeModal'));
       editModeModal.show();
       setTimeout(function() {
-        var input = document.getElementById('superAdminKeyInput');
+        var input = document.getElementById('masterAdminKeyInput');
         if (input) input.focus();
       }, 250);
     {% endif %}

@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -14,8 +14,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/data/database.db'
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 db = SQLAlchemy(app)
 
-# Set your super admin key here (change it to something only you know)
-SUPER_ADMIN_KEY = "letmein123"
+MASTER_ADMIN_KEY = "letmein123"
 
 # Database Models
 class TimeEntry(db.Model):
@@ -107,23 +106,29 @@ def logout():
     session.pop('can_edit', None)
     return redirect(url_for('admin_login'))
 
+@app.route('/exit_edit_mode', methods=['POST'])
+def exit_edit_mode():
+    session['can_edit'] = False
+    flash('Edit mode disabled.', 'info')
+    return redirect(url_for('dashboard'))
+
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
 
     can_edit = session.get('can_edit', False)
-    show_modal = False  # Controls whether to show the modal automatically
+    show_modal = False
 
-    # Handle edit mode unlock POST (super admin key)
-    if request.method == 'POST':
-        key = request.form.get('super_admin_key')
-        if key and key == SUPER_ADMIN_KEY:
+    # Handle edit mode unlock POST (master admin key)
+    if request.method == 'POST' and 'master_admin_key' in request.form:
+        key = request.form.get('master_admin_key')
+        if key and key == MASTER_ADMIN_KEY:
             session['can_edit'] = True
             can_edit = True
             flash('Edit mode enabled!', 'success')
-        elif key:  # If key was submitted but wrong
-            flash('Incorrect super admin key.', 'danger')
+        elif key:
+            flash('Incorrect master admin key.', 'danger')
             show_modal = True
 
     fullname = request.args.get('fullname', '')
@@ -142,7 +147,11 @@ def dashboard():
     if start_date:
         query = query.filter(TimeEntry.clock_in >= start_date)
     if end_date:
-        query = query.filter(TimeEntry.clock_in <= end_date)
+        try:
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)
+            query = query.filter(TimeEntry.clock_in < end_dt)
+        except Exception:
+            query = query.filter(TimeEntry.clock_in <= end_date)
 
     pagination = query.order_by(TimeEntry.clock_in.desc()).paginate(page=page, per_page=per_page)
     entries = pagination.items
@@ -179,7 +188,6 @@ def edit_entry(entry_id):
         clock_out_str = request.form.get('clock_out')
         timezone = request.form.get('timezone')
 
-        # 12-Hour Format Parsing
         try:
             entry.clock_in = datetime.strptime(clock_in_str, '%Y-%m-%d %I:%M %p')
         except Exception:
@@ -200,7 +208,6 @@ def edit_entry(entry_id):
         flash('Entry updated successfully.', 'success')
         return redirect(url_for('dashboard'))
 
-    # For GET request (show form), use 12-hour format for display
     clock_in_val = entry.clock_in.strftime('%Y-%m-%d %I:%M %p')
     clock_out_val = entry.clock_out.strftime('%Y-%m-%d %I:%M %p') if entry.clock_out else ''
     return render_template('edit_entry.html', entry=entry, clock_in_val=clock_in_val, clock_out_val=clock_out_val)
