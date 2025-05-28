@@ -32,15 +32,20 @@ class Admin(db.Model):
 # Create tables and default admin
 with app.app_context():
     db.create_all()
-    if not Admin.query.filter_by(username='admin').first():
+    admin = Admin.query.filter_by(username='admin').first()
+    if admin:
+        # --- Update username and/or password here ---
+        admin.username = 'absadmin'  # Change to your new username
+        admin.password = generate_password_hash('admin12345')  # Change password if you want
+        db.session.commit()
+        print("✅ Admin username and password updated.")
+    else:
+        print("ℹ️ Admin not found, creating new admin...")
         admin = Admin(
-            username='admin',
-            password=generate_password_hash('admin123')
+            username='absadmin',
+            password=generate_password_hash('admin12345')
         )
         db.session.add(admin)
         db.session.commit()
-        print("✅ Admin user created.")
-    else:
-        print("ℹ️ Admin already exists.")
+        print("✅ New admin created.")
 
-print("✅ Database and tables initialized.")
