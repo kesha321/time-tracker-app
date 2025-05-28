@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Time Entry</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .form-label small { font-size: 0.9em; }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Edit Time Entry</h2>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" class="bg-white p-4 rounded shadow-sm">
+        <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" value="{{ entry.fullname }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Role</label>
+            <input type="text" class="form-control" value="{{ entry.role }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">
+                Clock In <small class="text-muted">(YYYY-MM-DD hh:mm AM/PM)</small>
+            </label>
+            <input type="text" name="clock_in" class="form-control" value="{{ clock_in_val }}" required placeholder="2025-05-28 12:45 AM">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">
+                Clock Out <small class="text-muted">(YYYY-MM-DD hh:mm AM/PM or leave blank)</small>
+            </label>
+            <input type="text" name="clock_out" class="form-control" value="{{ clock_out_val }}" placeholder="2025-05-28 01:45 PM">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Timezone</label>
+            <input type="text" name="timezone" class="form-control" value="{{ entry.timezone }}" required>
+            <!-- Optional: Make this a dropdown if you want to limit the choices -->
+        </div>
+        <button type="submit" class="btn btn-primary">Update Entry</button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Auto-dismiss alerts after 3.5 seconds
+  window.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      var alerts = document.querySelectorAll('.alert');
+      alerts.forEach(function(alert) {
+        alert.classList.remove('show');
+        alert.classList.add('hide');
+      });
+    }, 3500);
+  });
+</script>
+</body>
+</html>

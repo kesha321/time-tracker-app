@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons for eye/eye-slash -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
@@ -14,6 +16,56 @@
     <h2>Timesheet Dashboard</h2>
     <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
   </div>
+
+  <!-- Unlock Edit Mode -->
+  <div class="text-end mb-3">
+    {% if not can_edit %}
+      <button class="btn btn-warning btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#editModeModal">
+        Unlock Edit Mode
+      </button>
+    {% else %}
+      <span class="badge bg-success">Edit Mode Enabled</span>
+    {% endif %}
+  </div>
+
+  <!-- Edit Mode Modal -->
+  <div class="modal fade" id="editModeModal" tabindex="-1" aria-labelledby="editModeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModeModalLabel">Enter Super Admin Key</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          <!-- Flash alerts (super admin key) -->
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+
+          <form method="post" action="{{ url_for('dashboard') }}">
+            <div class="input-group mb-3">
+              <input type="password" class="form-control" name="super_admin_key" id="superAdminKeyInput" placeholder="Super Admin Key" required>
+              <button class="btn btn-outline-secondary" type="button" id="togglePassword" tabindex="-1">
+                <span id="toggleIcon" class="bi bi-eye"></span>
+              </button>
+            </div>
+            <div class="modal-footer p-0">
+              <button type="submit" class="btn btn-primary w-100">Unlock Edit Mode</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- End Edit Mode Modal -->
 
   <!-- Filter Form -->
   <form method="get" action="{{ url_for('dashboard') }}" class="row g-3 mb-4">
@@ -40,18 +92,25 @@
       <table class="table table-bordered table-striped text-center align-middle">
         <thead class="table-dark">
           <tr>
-            <th><input type="checkbox" id="select-all"></th>
+            {% if can_edit %}
+              <th style="width:40px;"><input type="checkbox" id="select-all"></th>
+            {% endif %}
             <th>Full Name</th>
             <th>Role</th>
             <th>Clock In</th>
             <th>Clock Out</th>
             <th>Timezone</th>
+            {% if can_edit %}
+              <th>Actions</th>
+            {% endif %}
           </tr>
         </thead>
         <tbody>
           {% for entry in entries %}
           <tr>
-            <td><input type="checkbox" name="selected_ids" value="{{ entry.id }}"></td>
+            {% if can_edit %}
+              <td><input type="checkbox" name="selected_ids" value="{{ entry.id }}"></td>
+            {% endif %}
             <td>{{ entry.fullname }}</td>
             <td>{{ entry.role }}</td>
             <td>{{ entry.clock_in.strftime('%Y-%m-%d %I:%M %p') }}</td>
@@ -63,14 +122,21 @@
               {% endif %}
             </td>
             <td>{{ entry.timezone }}</td>
+            {% if can_edit %}
+              <td>
+                <a href="{{ url_for('edit_entry', entry_id=entry.id) }}" class="btn btn-sm btn-primary">Edit</a>
+              </td>
+            {% endif %}
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-    <div class="mb-4">
-      <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete the selected entries?')">Delete Selected</button>
-    </div>
+    {% if can_edit %}
+      <div class="mb-4">
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete the selected entries?')">Delete Selected</button>
+      </div>
+    {% endif %}
   </form>
 
   <!-- Toggle Summary Button -->
@@ -134,21 +200,58 @@
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  document.getElementById('select-all').addEventListener('change', function(e) {
-    const checkboxes = document.querySelectorAll('input[name="selected_ids"]');
-    checkboxes.forEach(cb => cb.checked = e.target.checked);
+  // Select all checkboxes
+  var selectAll = document.getElementById('select-all');
+  if (selectAll) {
+    selectAll.addEventListener('change', function(e) {
+      const checkboxes = document.querySelectorAll('input[name="selected_ids"]');
+      checkboxes.forEach(cb => cb.checked = e.target.checked);
+    });
+  }
+
+  // Show/Hide password for super admin key
+  document.getElementById('togglePassword').addEventListener('click', function () {
+    const keyInput = document.getElementById('superAdminKeyInput');
+    const toggleIcon = document.getElementById('toggleIcon');
+    if (keyInput.type === "password") {
+      keyInput.type = "text";
+      toggleIcon.classList.remove('bi-eye');
+      toggleIcon.classList.add('bi-eye-slash');
+    } else {
+      keyInput.type = "password";
+      toggleIcon.classList.remove('bi-eye-slash');
+      toggleIcon.classList.add('bi-eye');
+    }
   });
 
-  // Auto collapse summary on page load (if filters or pagination applied)
-  window.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener('DOMContentLoaded', function() {
+    // Collapse summary if filters or pagination applied
     const url = new URL(window.location.href);
     if (url.searchParams.has('page') || url.searchParams.has('fullname') || url.searchParams.has('role') || url.searchParams.has('start_date') || url.searchParams.has('end_date')) {
       const collapseEl = document.getElementById('summaryCollapse');
       const bsCollapse = new bootstrap.Collapse(collapseEl, { toggle: false });
       bsCollapse.hide();
     }
+
+    // Auto-dismiss alerts after 3.5 seconds
+    setTimeout(function() {
+      var alerts = document.querySelectorAll('.alert');
+      alerts.forEach(function(alert) {
+        alert.classList.remove('show');
+        alert.classList.add('hide');
+      });
+    }, 3500);
+
+    // Auto-open modal if show_modal is set
+    {% if show_modal %}
+      var editModeModal = new bootstrap.Modal(document.getElementById('editModeModal'));
+      editModeModal.show();
+      setTimeout(function() {
+        var input = document.getElementById('superAdminKeyInput');
+        if (input) input.focus();
+      }, 250);
+    {% endif %}
   });
 </script>
-
 </body>
 </html>
