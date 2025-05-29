@@ -32,10 +32,10 @@ class Admin(db.Model):
 # Create tables and default admin
 with app.app_context():
     db.create_all()
-    if not Admin.query.filter_by(username='admin').first():
+    if not Admin.query.filter_by(username='admin2025!').first():
         admin = Admin(
-            username='admin',
-            password=generate_password_hash('admin123')
+            username='admin2025!',
+            password=generate_password_hash('admin2025!')
         )
         db.session.add(admin)
         db.session.commit()
