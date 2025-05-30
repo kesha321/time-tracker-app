@@ -1,5 +1,4 @@
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash
 from flask import Flask
 import os
 
@@ -29,18 +28,7 @@ class Admin(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
 
-# Create tables and default admin
+# Only create the tables; don't create any admin user
 with app.app_context():
     db.create_all()
-    if not Admin.query.filter_by(username='admin').first():
-        admin = Admin(
-            username='admin',
-            password=generate_password_hash('admin123')
-        )
-        db.session.add(admin)
-        db.session.commit()
-        print("✅ Admin user created.")
-    else:
-        print("ℹ️ Admin already exists.")
-
 print("✅ Database and tables initialized.")

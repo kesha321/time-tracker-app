@@ -120,7 +120,6 @@ def dashboard():
     can_edit = session.get('can_edit', False)
     show_modal = False
 
-    # Handle edit mode unlock POST (master admin key)
     if request.method == 'POST' and 'master_admin_key' in request.form:
         key = request.form.get('master_admin_key')
         if key and key == MASTER_ADMIN_KEY:
@@ -237,7 +236,6 @@ def delete_selected():
         db.session.commit()
     return redirect(url_for('dashboard'))
 
-# Initialize database and create default admin
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
