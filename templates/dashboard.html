@@ -69,8 +69,8 @@
   </div>
   <!-- End Master Admin Modal -->
 
-  <!-- Filter Form -->
-  <form method="get" action="{{ url_for('dashboard') }}" class="row g-3 mb-4">
+  <!-- Filter Form with Clear Filter -->
+  <form id="filterForm" method="get" action="{{ url_for('dashboard') }}" class="row g-3 mb-4">
     <div class="col-md-3">
       <input type="text" name="fullname" class="form-control" placeholder="Employee Name" value="{{ request.args.get('fullname', '') }}">
     </div>
@@ -83,10 +83,12 @@
     <div class="col-md-2">
       <input type="date" name="end_date" class="form-control" value="{{ request.args.get('end_date', '') }}">
     </div>
-    <div class="col-md-2">
-      <button type="submit" class="btn btn-primary w-100">Filter</button>
+    <div class="col-md-2 d-flex align-items-center gap-2">
+      <button type="submit" class="btn btn-primary btn-sm flex-fill me-0">Filter</button>
+      <button type="button" id="clearFilterBtn" class="btn btn-secondary btn-sm flex-fill">Clear Filter</button>
     </div>
   </form>
+
 
   <!-- Bulk Delete Form & Timesheet Table -->
   <form method="POST" action="{{ url_for('delete_selected') }}">
@@ -224,6 +226,16 @@
       toggleIcon.classList.remove('bi-eye-slash');
       toggleIcon.classList.add('bi-eye');
     }
+  });
+
+  // Clear Filter Button Logic
+  document.getElementById('clearFilterBtn').addEventListener('click', function() {
+    var form = document.getElementById('filterForm');
+    form.querySelector('input[name="fullname"]').value = '';
+    form.querySelector('input[name="role"]').value = '';
+    form.querySelector('input[name="start_date"]').value = '';
+    form.querySelector('input[name="end_date"]').value = '';
+    form.submit();
   });
 
   window.addEventListener('DOMContentLoaded', function() {

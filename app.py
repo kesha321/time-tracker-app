@@ -130,10 +130,11 @@ def dashboard():
             flash('Incorrect master admin key.', 'danger')
             show_modal = True
 
-    fullname = request.args.get('fullname', '')
-    role = request.args.get('role', '')
-    start_date = request.args.get('start_date', '')
-    end_date = request.args.get('end_date', '')
+    # --- FILTER LOGIC ---
+    fullname = request.args.get('fullname', '').strip()
+    role = request.args.get('role', '').strip()
+    start_date = request.args.get('start_date', '').strip()
+    end_date = request.args.get('end_date', '').strip()
     page = request.args.get('page', 1, type=int)
     per_page = 10
 
@@ -144,19 +145,28 @@ def dashboard():
     if role:
         query = query.filter(TimeEntry.role.ilike(f"%{role}%"))
     if start_date:
-        query = query.filter(TimeEntry.clock_in >= start_date)
+        try:
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            query = query.filter(TimeEntry.clock_in >= start_dt)
+        except Exception as e:
+            print(f"Start date filter error: {e}")
     if end_date:
         try:
+            # To include all times on end_date, we filter < end_date + 1 day
             end_dt = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)
             query = query.filter(TimeEntry.clock_in < end_dt)
-        except Exception:
-            query = query.filter(TimeEntry.clock_in <= end_date)
+        except Exception as e:
+            print(f"End date filter error: {e}")
 
     pagination = query.order_by(TimeEntry.clock_in.desc()).paginate(page=page, per_page=per_page)
     entries = pagination.items
 
+    # Calculate total hours per employee for all filtered records (not just paginated)
+    # So, re-apply filters (for export/summary), not just paginated entries
+    summary_query = query  # This is already filtered
+
     total_hours_per_employee = {}
-    for entry in query:
+    for entry in summary_query:
         duration = (entry.clock_out - entry.clock_in).total_seconds() / 3600 if entry.clock_out else 0
         total_hours_per_employee[entry.fullname] = total_hours_per_employee.get(entry.fullname, 0) + duration
 
