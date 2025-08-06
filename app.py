@@ -9,8 +9,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 
 # Ensure database path exists
-os.makedirs('/mnt/data', exist_ok=True)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/data/database.db'
+os.makedirs('data', exist_ok=True)  # Creates a folder named 'data' in your app directory
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data/database.db'
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 db = SQLAlchemy(app)
 
