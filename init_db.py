@@ -6,10 +6,10 @@ import os
 app = Flask(__name__)
 
 # Ensure mount path exists (safe for local and Render)
-os.makedirs('/mnt/data', exist_ok=True)
+os.makedirs('data', exist_ok=True)
 
 # Persistent database path
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/data/database.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data/database.db'
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 
 db = SQLAlchemy(app)
